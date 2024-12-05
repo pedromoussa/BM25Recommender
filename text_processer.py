@@ -1,44 +1,57 @@
+import nltk
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
-import math
-import nltk
+from nltk.stem import WordNetLemmatizer
+from sklearn.feature_extraction.text import TfidfVectorizer
 from collections import Counter
 
-nltk.download('punkt_tab')
+nltk.download('punkt')
 nltk.download('stopwords')
+nltk.download('wordnet')
 
 def process_text(text):
+	# Tokenize and clean the text: lowercasing, stopword removal, and lemmatization
 	tokens = word_tokenize(text.lower())
 	stop_words = set(stopwords.words("english"))
-	return [word for word in tokens if word.isalnum() and word not in stop_words]
+	tokens = [word for word in tokens if word.isalnum() and word not in stop_words]
+
+	lemmatizer = WordNetLemmatizer()
+	tokens = [lemmatizer.lemmatize(word) for word in tokens]
+
+	return " ".join(tokens)
+
+def build_user_query(user_data):
+	all_text = []
+	
+	# Process user posts
+	if "posts" in user_data:
+		for post_data in user_data["posts"]:
+			processed_text = process_text(post_data)
+			all_text.append(processed_text)  # Process each post content
+
+	# Process user tags
+	if "tags" in user_data:
+		tags_text = " ".join(user_data["tags"])  # Join tags into a string and process
+		processed_tags = process_text(tags_text)
+		all_text.append(processed_tags)
+	
+	combined_text = " ".join(all_text)
+	word_counts = Counter(combined_text.split())
+	
+	# Get the most common 5 words
+	most_common_words = [word for word, _ in word_counts.most_common(5)]
+
+	# Combine the processed texts into one query
+	user_query = " ".join(most_common_words)  # Adjust based on your requirement
+	print(f"Processed User Query: {user_query}")
+	
+	return user_query
 
 def calculate_idf(documents):
-	N = len(documents)
-	term_doc_count = Counter()
+	vectorizer = TfidfVectorizer()
+	tfidf_matrix = vectorizer.fit_transform(documents)
+	idf = vectorizer.idf_
+	vocab = vectorizer.get_feature_names_out()
 
-	for doc in documents:
-		unique_terms = set(doc)
-		for term in unique_terms:
-			term_doc_count[term] += 1
-
-	idf = {
-		term: math.log((N + 1) / (count + 1)) + 1
-		for term, count in term_doc_count.items()
-	}
-	return idf
-
-def calculate_bm25(query_tokens, documents, idf, k1=1.5, b=0.75):
-	scores = []
-	avg_doc_len = sum(len(doc) for doc in documents) / len(documents)
-
-	for doc in documents:
-		doc_len = len(doc)
-		score = 0
-		for term in query_tokens:
-			tf = doc.count(term)
-			term_idf = idf.get(term, 0)
-			numerator = tf * (k1 + 1)
-			denominator = tf + k1 * (1 - b + b * (doc_len / avg_doc_len))
-			score += term_idf * (numerator / denominator)
-		scores.append(score)
-	return scores
+	idf_dict = {vocab[i]: idf[i] for i in range(len(vocab))}
+	return idf_dict
