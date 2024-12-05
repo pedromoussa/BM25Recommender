@@ -32,18 +32,3 @@ def calculate_bm25(query_tokens, documents, idf, k1=1.5, b=0.75):
 			score += term_idf * (numerator / denominator)
 		scores.append(score)
 	return scores
-
-# def calculate_bm25(query_tokens, documents):
-# 	# Tokenize all documents
-# 	tokenized_docs = [process_text(doc) for doc in documents]
-	
-# 	# Instantiate BM25 model
-# 	bm25 = BM25Okapi(tokenized_docs)
-	
-# 	# Query should also be tokenized
-# 	query_tokens = process_text(query_tokens)
-	
-# 	# Get BM25 scores for the query
-# 	scores = bm25.get_scores(query_tokens)
-	
-# 	return scores
