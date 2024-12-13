@@ -4,14 +4,12 @@ from datetime import datetime, timedelta
 
 API_BASE_URL = "https://api.stackexchange.com/2.3"
 
-# Mapeamento de rotas da API
 ENDPOINTS = {
   "questions": "/questions",
   "user_posts": "/users/{id}/posts?order=desc&sort=activity&site=stackoverflow",
   "user_tags": "/users/{id}/tags?order=desc&sort=popular&site=stackoverflow",
 }
 
-# Faz uma chamada genérica à API do Stack Exchange
 def fetch_data(endpoint, user_id=None, params=None):
   if params is None:
     params = {}
