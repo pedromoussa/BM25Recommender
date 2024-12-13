@@ -47,6 +47,38 @@ def build_user_query(user_data):
 	
 	return user_query
 
+def build_user_query_tfidf(user_data):
+	all_text = []
+
+	if "posts" in user_data:
+		for post_data in user_data["posts"]:
+			processed_text = process_text(post_data)
+			all_text.append(processed_text)
+	
+	if "tags" in user_data:
+		tags_text = " ".join(user_data["tags"])
+		processed_tags = process_text(tags_text)
+		all_text.append(processed_tags)
+	
+	combined_text = " ".join(all_text)
+	
+	documents = [combined_text]
+	
+	vectorizer = TfidfVectorizer()
+	tfidf_matrix = vectorizer.fit_transform(documents)
+	feature_names = vectorizer.get_feature_names_out()
+	
+	user_tfidf_vector = tfidf_matrix[0].toarray()[0]
+	tfidf_scores = {feature_names[i]: user_tfidf_vector[i] for i in range(len(feature_names))}
+	
+	sorted_terms = sorted(tfidf_scores.items(), key=lambda x: x[1], reverse=True)
+	most_important_terms = [term for term, score in sorted_terms[:5]]
+	
+	user_query = " ".join(most_important_terms)
+	print(f"Processed User Query with TF-IDF: {user_query}")
+	
+	return user_query
+
 def calculate_idf(documents):
 	vectorizer = TfidfVectorizer()
 	tfidf_matrix = vectorizer.fit_transform(documents)
