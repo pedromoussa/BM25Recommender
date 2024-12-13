@@ -7,7 +7,7 @@ def recommend_posts(user_query, recent_posts):
 	print("Calculating IDF...")
 	idf = calculate_idf(documents)
 
-	query_tokens = process_text(user_query).split()  # Process the user query text
+	query_tokens = user_query.split()  # Process the user query text
 
 	print("Ranking posts...")
 	scores = calculate_bm25(query_tokens, documents, idf)
